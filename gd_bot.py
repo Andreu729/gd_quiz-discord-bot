@@ -1,9 +1,10 @@
 import discord as dc
+from discord.ext import commands
 from dotenv import load_dotenv
 import os
 import time
 
-class GDQuiz(dc.Client):
+class GDQuiz(commands.Bot):
     load_dotenv("credentials.env")
     GUILD_ID = None
     try:
@@ -24,13 +25,30 @@ class GDQuiz(dc.Client):
             
         print(f"{self.user} conectado en {self.guild.name} con {self.guild.id}")
 
-    async def on_message(self, message):
+    async def on_message(self, message: dc.Message):
         if message.author == self.user:
             return
+        elif message.content == 'errorsito':
+            raise dc.DiscordException
 
         if message.content.startswith('el_pepe'):
             if time.monotonic() - self.timer_pepe >= 10:
                 await message.channel.send('el pepe si recibiese una notificación: el wasap!')
+                await message.channel.send('el_pepe')
                 self.timer_pepe = time.monotonic()
             else:
                 await message.channel.send(f"Faltan {int(10 - time.monotonic() + self.timer_pepe)} [s] para volver a enviar el mensaje.")
+                await message.author.create_dm()
+                await message.author.dm_channel.send(message.content)
+        await self.process_commands(message)
+    
+    async def on_error(self, event, *args, **kwards):
+        with open("error.log", "a") as file:
+            if event == "on_message":
+                file.write(f"Error con el mensaje: {args[0]}\n")
+                print(f"Error registado: Mensaje lanzó excepción. Autor: {args[0].author.name}")
+            else:
+                raise
+    
+    async def setup_hook(self):
+        await self.load_extension("gd_cog")

@@ -10,6 +10,6 @@ if __name__ == "__main__":
     intents = dc.Intents.default()
     intents.message_content = True
 
-    client = GDQuiz(intents=intents)
+    client = GDQuiz(intents=intents, command_prefix='$')
 
     client.run(TOKEN)
