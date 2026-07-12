@@ -8,6 +8,11 @@ class GDQuiz(commands.Bot):
     load_dotenv("credentials.env")
     GUILD_ID = None
     try:
+        DAILY_CHANNEL_ID = os.getenv("DAILY_CHANNEL_ID")
+        DAILY_CHANNEL_ID = int(DAILY_CHANNEL_ID)
+    except ValueError:
+        print(f"[ERROR]: DAILY_CHANNEL_ID must be convertible to a int!: int(DAILY_CHANNEL_ID) fails")
+    try:
         GUILD_ID = os.getenv("GUILD_ID")
         GUILD_ID = int(GUILD_ID)
     except ValueError:
@@ -52,3 +57,8 @@ class GDQuiz(commands.Bot):
     
     async def setup_hook(self):
         await self.load_extension("gd_cog")
+        await self.load_extension("refresh_cog")
+
+        server = dc.Object(id=self.GUILD_ID)
+        #self.tree.copy_global_to(guild=server)
+        await self.tree.sync(guild=server)
