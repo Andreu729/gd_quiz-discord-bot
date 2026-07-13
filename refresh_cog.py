@@ -28,7 +28,7 @@ class RefreshCog(commands.Cog):
             print(f"[ERROR]: GUILD_ID must be convertible to an int!: int(GUILD_ID) fails")
         importlib.reload(cg)
         await bot.reload_extension("gd_cog")
-        print("Refreshed all time and ids data (to change the guild token you must restart the bot)")
+        print("Refreshed all time and ids data")
 
 async def setup(bot):
     await bot.add_cog(RefreshCog(bot))
