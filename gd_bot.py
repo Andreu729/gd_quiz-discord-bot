@@ -1,8 +1,10 @@
 import discord as dc
 from discord.ext import commands
+#need to install
 from dotenv import load_dotenv
 import os
 import time
+from gd_data import configure_database
 
 class GDQuiz(commands.Bot):
     load_dotenv("credentials.env")
@@ -56,9 +58,14 @@ class GDQuiz(commands.Bot):
                 raise
     
     async def setup_hook(self):
+        # sqlite database setup
+        await configure_database()
+
+        # cog extensions for comands
         await self.load_extension("gd_cog")
-        await self.load_extension("refresh_cog")
+        await self.load_extension("developer_cog")
+
 
         server = dc.Object(id=self.GUILD_ID)
-        #self.tree.copy_global_to(guild=server)
+        self.tree.copy_global_to(guild=server)
         await self.tree.sync(guild=server)

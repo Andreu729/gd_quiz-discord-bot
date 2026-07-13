@@ -1,11 +1,12 @@
+# need to install
 from discord import ui
 import discord as dc
 import config as cg
 
 class QuestionButton(ui.Button):
 
-    def __init__(self, label: str, correct: bool, row: int):
-        super().__init__(label=label, style=dc.ButtonStyle.secondary, row=row)
+    def __init__(self, label: str, correct: bool):
+        super().__init__(label=label, style=dc.ButtonStyle.secondary)
         self.correct = correct
     
     async def callback(self, interaction: dc.Interaction):
@@ -20,12 +21,10 @@ class QuestionExample(ui.View):
     def __init__(self):
         super().__init__(timeout=None)
 
-        
-
-        self.add_item(QuestionButton(label="Bli", correct=False, row=0))
-        self.add_item(QuestionButton(label="Michigun", correct=False, row=1))
-        self.add_item(QuestionButton(label="npesta", correct=False, row=2))
-        self.add_item(QuestionButton(label="Zobros", correct=True, row=3))
+        self.add_item(QuestionButton(label="Spawn Trigger", correct=False))
+        self.add_item(QuestionButton(label="Touch Trigger", correct=False))
+        self.add_item(QuestionButton(label="On Restart Trigger", correct=True))
+        self.add_item(QuestionButton(label="Random Trigger", correct=False))
 
 def question_embed(desc: str, difficulty: str, daily: bool=True, number: int=0) -> dc.Embed:
     if daily:
@@ -33,9 +32,21 @@ def question_embed(desc: str, difficulty: str, daily: bool=True, number: int=0) 
     else:
         title = f"Pregunta {number}/{cg.TOTAL_QUESTIONS}"
 
+    if difficulty == "Muy fácil":
+        color = dc.Color.blue()
+    elif difficulty == "Fácil":
+        color = dc.Color.green()
+    elif difficulty == "Intermedia":
+        color = dc.Color.yellow()
+    elif difficulty == "Difícil":
+        color = dc.Color.red()
+    elif difficulty == "Imposible":
+        color = dc.Color.purple()
+    else:
+        color = dc.Color.light_gray()
     embed_question = dc.Embed(title=title,
                                   description=desc,
-                                  color=dc.Color.red())
+                                  color=color)
         
     embed_question.add_field(name="Dificultad", value=difficulty, inline=True)
     # Se debe cambiar el parámetro de tiempo según la config.

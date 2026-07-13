@@ -22,11 +22,12 @@ class GDCog(commands.Cog):
         await interaction.response.send_message("Hola!, toma esta galleta uwu 🍪")
     
     #@tasks.Loop(time=daily_time)
-    @tasks.loop(seconds=30.0)
+    @tasks.loop(seconds=60.0)
     async def run_daily_question(self):
         view = QuestionExample()
-        desc = "Quién es el creador del famoso nivel **Nine Circles**?"
-        diff = "Muy Fácil"
+        #desc = "Quién es el creador del famoso nivel **Nine Circles**?"
+        desc = "Oficialmente, cuál de estos triggers **no existe** en el editor?"
+        diff = "Fácil"
         embed = question_embed(desc, diff)
         await self.bot.get_channel(self.bot.DAILY_CHANNEL_ID).send(embed=embed, view=view)
     
