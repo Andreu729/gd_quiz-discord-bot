@@ -2,6 +2,8 @@
 from discord import ui
 import discord as dc
 import config as cg
+from gd_data import QuestionGD
+from random import shuffle
 
 class QuestionButton(ui.Button):
 
@@ -25,6 +27,21 @@ class QuestionExample(ui.View):
         self.add_item(QuestionButton(label="Touch Trigger", correct=False))
         self.add_item(QuestionButton(label="On Restart Trigger", correct=True))
         self.add_item(QuestionButton(label="Random Trigger", correct=False))
+
+class QuestionButtonsView(ui.View):
+
+    def __init__(self, question: QuestionGD, extra: bool=False):
+        super().__init__(timeout=None)
+        correct_id = question.correct
+        alternatives = question.alternatives
+        button_list = [QuestionButton(label=alternatives[i], correct=i==correct_id) for i in range(len(alternatives))]
+        if extra is True:
+            ext_alternatives = question.ext_alternatives
+            button_list += [QuestionButton(label=ext_alternatives[i], correct=False) for i in range(len(ext_alternatives))]
+        
+        shuffle(button_list)
+        for button in button_list:
+            self.add_item(button)
 
 def question_embed(desc: str, difficulty: str, daily: bool=True, number: int=0) -> dc.Embed:
     if daily:

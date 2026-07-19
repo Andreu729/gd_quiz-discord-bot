@@ -5,7 +5,7 @@ import importlib
 from dotenv import load_dotenv
 import os
 from discord import app_commands
-from gd_data import QuestionGD, insert_question
+from gd_data import QuestionGD, insert_question, obtain_questions, modify_question, delete_question
 
 class DeveloperCog(commands.Cog):
     
@@ -70,7 +70,40 @@ class DeveloperCog(commands.Cog):
         await insert_question(question)
         print(f"Nueva pregunta añadida: {description}")
         await interaction.response.send_message("pregunta añadida correctamente!")
-    # checks if the command where is sent is in the correct channel.
+    
+    @app_commands.command(name="obtain_questions", description="[🔧 DEV COMMAND]: Use it to print all available questions in the bot console")
+    @app_commands.check(dev_allowed_channel)
+    @app_commands.default_permissions(administrator=True)
+    async def obtain_questions_command(self, interaction: dc.Interaction):
+        questions = await obtain_questions(cg.OBTAIN_QUESTIONS_LIMIT)
+        await interaction.response.send_message(questions)
+
+    @app_commands.command(name="modify_question", description="[🔧 DEV COMMAND]: Use it to modify one parameter of one question by id")
+    @app_commands.check(dev_allowed_channel)
+    @app_commands.choices(parameter=[
+    app_commands.Choice(name="difficulty", value="difficulty"),
+    app_commands.Choice(name="description", value="description"),
+    app_commands.Choice(name="alternatives", value="alternatives"),
+    app_commands.Choice(name="ext_alternatives", value="ext_alternatives"),
+    app_commands.Choice(name="correct", value="correct")
+])
+    @app_commands.describe(id="the id of the question to modify", 
+                           parameter="the parameter to change", 
+                           value="the value of the given parameter")
+    @app_commands.default_permissions(administrator=True)
+    async def modify_question_command(self, interaction: dc.Interaction, 
+                                      id: int, parameter: app_commands.Choice[str], value: str):
+        result = await modify_question(id, parameter.name, value)
+        if result is True:
+            await interaction.response.send_message("Parametro cambiado correctmente")
+
+    @app_commands.command(name="delete_question", description="[🔧 DEV COMMAND]: Use it to delete the question with its id")
+    @app_commands.check(dev_allowed_channel)
+    @app_commands.describe(id="Id of question to delete")
+    @app_commands.default_permissions(administrator=True)
+    async def delete_question_command(self, interaction: dc.Interaction, id: int):
+        await delete_question(id)
+        await interaction.response.send_message(f"Pregunta ID={id} se ha eliminado")
 
 # Comandos faltantes:
 # obtain_questions (para obtener las ids y los enunciados

@@ -61,6 +61,10 @@ class GDQuiz(commands.Bot):
         # sqlite database setup
         await configure_database()
 
+        #self.tree.clear_commands(guild=None)
+        # Sincronizamos esa "nada" con Discord para borrar su base de datos global
+        #await self.tree.sync()
+
         # cog extensions for comands
         await self.load_extension("gd_cog")
         await self.load_extension("developer_cog")

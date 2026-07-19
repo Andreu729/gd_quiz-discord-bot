@@ -3,6 +3,11 @@ from zoneinfo import ZoneInfo
 DAILY_QUESTION_TIME = [15, 0, 0]
 TIMEZONE = ZoneInfo("America/Santiago")
 
+'''
+Dev parameters (for avoid spamming in both consoles and chat)
+'''
+OBTAIN_QUESTIONS_LIMIT = 25
+
 # Params for questions in general
 '''
 IMPORTANT: If you change the alternatives parametrers you must change the whole questions database
