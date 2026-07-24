@@ -33,17 +33,34 @@ class QuestionButtonsView(ui.View):
     def __init__(self, question: QuestionGD, extra: bool=False):
         super().__init__(timeout=None)
         correct_id = question.correct
-        alternatives = question.alternatives
-        button_list = [QuestionButton(label=alternatives[i], correct=i==correct_id) for i in range(len(alternatives))]
-        if extra is True:
-            ext_alternatives = question.ext_alternatives
-            button_list += [QuestionButton(label=ext_alternatives[i], correct=False) for i in range(len(ext_alternatives))]
+        shuffled = question.shuffled_alternatives
+        len_shuffled = len(shuffled)
+        correct = question.alternatives[correct_id]
+        #alt_len = len(question.alternatives)
+        button_list = [QuestionButton(label=chr(65 + i), correct=shuffled[i]==correct) for i in range(len_shuffled)]
+        #if extra is True:
+        #    ext_len = len(question.ext_alternatives)
+        #    button_list += [QuestionButton(label=chr(65 + i + alt_len), correct=False) for i in range(ext_len)]
         
-        shuffle(button_list)
+        #shuffle(button_list)
         for button in button_list:
             self.add_item(button)
 
-def question_embed(desc: str, difficulty: str, daily: bool=True, number: int=0) -> dc.Embed:
+def question_embed(question: QuestionGD, daily: bool=True, number: int=0) -> dc.Embed:
+    desc = question.desc + ".\n\n"
+    difficulty = question.difficulty
+    question_amount = len(question.alternatives)
+    total_alternatives = question.alternatives.copy()
+    if question.is_extra is True:
+        question_amount += len(question.ext_alternatives)
+        total_alternatives += question.ext_alternatives
+    
+    # Randomize alternatives order
+    shuffle(total_alternatives)
+    question.shuffled_alternatives = total_alternatives
+    # This part create the alternatives description
+    for i in range(question_amount):
+        desc += f"**{chr(65 + i)}**" + ": " + total_alternatives[i] + ".\n"
     if daily:
         title = "Pregunta Diaria"
     else:

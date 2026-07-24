@@ -14,7 +14,8 @@ class QuestionGD:
         self.alternatives = alternatives
         self.correct = correct
         self.ext_alternatives = ext_alternatives
-
+        self.is_extra = False
+        self.shuffled_alternatives = []
 # runs every time you start the bot.
 async def configure_database():
     # Se conecta al archivo (si no existe, lo crea al instante)
@@ -111,3 +112,21 @@ async def obtain_questions(limit: int=-1):
                 print(f"ID: {question_id}, | Enunciado: {description}")
                 print(f"Alternativas: {alternatives} | Alternativas Carta: {ext_alternatives}")
             return data_list
+
+async def obtain_single_question(id: int) -> QuestionGD:
+    path = os.path.join("database", "questions.db")
+    async with sq.connect(path) as db:
+        db.row_factory = sq.Row
+
+        async with db.execute("SELECT * FROM questions WHERE id = ?",(id,)) as cursor:
+
+            row = await cursor.fetchone()
+            row = dict(row)
+            difficulty = row["difficulty"]
+            description = row["description"]
+            correct = row["correct"]
+            alternatives = json.loads(row["alternatives"])
+            ext_alternatives = json.loads(row["ext_alternatives"])
+            question = QuestionGD(description, difficulty, alternatives, correct, ext_alternatives)
+            print(f"obtenida la pregunta con id {id}")
+            return question

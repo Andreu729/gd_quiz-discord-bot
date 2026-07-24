@@ -6,12 +6,13 @@ TIMEZONE = ZoneInfo("America/Santiago")
 '''
 Dev parameters (for avoid spamming in both consoles and chat)
 '''
-OBTAIN_QUESTIONS_LIMIT = 25
+OBTAIN_QUESTIONS_LIMIT = 50
 
 # Params for questions in general
 '''
 IMPORTANT: If you change the alternatives parametrers you must change the whole questions database
 to match correctly those new parameters.
+
 '''
 
 TOTAL_ALTERNATIVES = 4

@@ -21,17 +21,16 @@ class GDCog(commands.Cog):
     @app_commands.command(name="galleta", description="Bot te da una galleta 🍪")
     async def dar_galleta(self, interaction: dc.Interaction):
         await interaction.response.send_message("Hola!, toma esta galleta uwu 🍪")
-    
-    #@tasks.Loop(time=daily_time)
-    @tasks.loop(seconds=60.0)
+
+    @tasks.loop(time=daily_time)
     async def run_daily_question(self):
         view = QuestionExample()
         #desc = "Quién es el creador del famoso nivel **Nine Circles**?"
         desc = "Oficialmente, cuál de estos triggers **no existe** en el editor?"
         diff = "Fácil"
         question = QuestionGD(desc=desc, difficulty=diff, alternatives=["Spawn Trigger", "Touch Trigger", "On Restart Trigger", "Random Trigger"], correct=2, ext_alternatives=["On Death Trigger", "Advanced Follow Trigger"])
+        embed = question_embed(question)
         view = QuestionButtonsView(question=question)
-        embed = question_embed(desc, diff)
         await self.bot.get_channel(self.bot.DAILY_CHANNEL_ID).send(embed=embed, view=view)
     
     @run_daily_question.before_loop

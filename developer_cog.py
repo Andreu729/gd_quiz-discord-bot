@@ -5,8 +5,9 @@ import importlib
 from dotenv import load_dotenv
 import os
 from discord import app_commands
-from gd_data import QuestionGD, insert_question, obtain_questions, modify_question, delete_question
-
+from gd_data import (QuestionGD, insert_question, obtain_questions, 
+                     modify_question, delete_question, obtain_single_question)
+from gd_ui import question_embed, QuestionButtonsView
 class DeveloperCog(commands.Cog):
     
     def __init__(self, bot: commands.Bot):
@@ -51,7 +52,7 @@ class DeveloperCog(commands.Cog):
     @app_commands.command(name="insert_question", description="[🔧 DEV COMMAND]: Use it to insert a new question into the trivia!")
     @app_commands.check(dev_allowed_channel)
     @app_commands.describe(
-        difficulty="Set a difficulty level from: (Muy fácil, Fácil, Intermedia, Difícil, Imposible)",
+        difficulty="Set a difficulty level from: (Muy Fácil, Fácil, Intermedia, Difícil, Imposible)",
         description="The text of the question",
         alternatives="The alternatives that the question have (must be csv, separated by commas)",
         correct="the index of the correct alternative",
@@ -76,7 +77,7 @@ class DeveloperCog(commands.Cog):
     @app_commands.default_permissions(administrator=True)
     async def obtain_questions_command(self, interaction: dc.Interaction):
         questions = await obtain_questions(cg.OBTAIN_QUESTIONS_LIMIT)
-        await interaction.response.send_message(questions)
+        await interaction.response.send_message(questions[:10])
 
     @app_commands.command(name="modify_question", description="[🔧 DEV COMMAND]: Use it to modify one parameter of one question by id")
     @app_commands.check(dev_allowed_channel)
@@ -105,9 +106,16 @@ class DeveloperCog(commands.Cog):
         await delete_question(id)
         await interaction.response.send_message(f"Pregunta ID={id} se ha eliminado")
 
-# Comandos faltantes:
-# obtain_questions (para obtener las ids y los enunciados
-# modify_question (para modificar un elemento de la base según id)
-# remove_question (para eliminar un elemento según id)
+    @app_commands.command(name="print_question", description="[🔧 DEV COMMAND]: Prints the question with that id in the cool format")
+    @app_commands.check(dev_allowed_channel)
+    @app_commands.describe(id="Id of question to print")
+    @app_commands.default_permissions(administrator=True)
+    async def print_single_question(self, interaction: dc.Interaction, id: int):
+        question = await obtain_single_question(id)
+        embed = question_embed(question)
+        view = QuestionButtonsView(question=question)
+        print(f"print_question: pregunta con id={id} mostrada")
+        await interaction.response.send_message(f"Pregunta con id={id} printeada en el chat", ephemeral=True)
+        await interaction.channel.send(embed=embed, view=view)
 async def setup(bot):
     await bot.add_cog(DeveloperCog(bot))
