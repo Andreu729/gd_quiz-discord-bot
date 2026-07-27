@@ -7,6 +7,7 @@ TIMEZONE = ZoneInfo("America/Santiago")
 Dev parameters (for avoid spamming in both consoles and chat)
 '''
 OBTAIN_QUESTIONS_LIMIT = 50
+OBTAIN_QUESTIONS_PAGE_LIMIT = 5
 
 # Params for questions in general
 '''
@@ -28,3 +29,11 @@ EXTRA_ALTERNATIVES_BONUS = 350
 QUICK_WILDCARD_BONUS = 200
 MULT_WILDCARD = 2
 # Wildcards info
+
+
+#xp increase
+XP_DAILY_VERY_EASY = 10
+XP_DAILY_EASY = 12
+XP_DAILY_MEDIUM = 15
+XP_DAILY_HARD = 18
+XP_DAILY_IMPOSSIBLE = 25

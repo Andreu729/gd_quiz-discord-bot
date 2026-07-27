@@ -4,7 +4,7 @@ from discord import app_commands
 import config as cg
 import datetime
 from gd_ui import QuestionExample, question_embed, QuestionButtonsView
-from gd_data import QuestionGD
+from gd_data import QuestionGD, obtain_user_xp
 class GDCog(commands.Cog):
     daily_time = datetime.time(hour=cg.DAILY_QUESTION_TIME[0], minute=cg.DAILY_QUESTION_TIME[1], 
                                second=cg.DAILY_QUESTION_TIME[2], tzinfo=cg.TIMEZONE)
@@ -22,10 +22,15 @@ class GDCog(commands.Cog):
     async def dar_galleta(self, interaction: dc.Interaction):
         await interaction.response.send_message("Hola!, toma esta galleta uwu 🍪")
 
+    @app_commands.command(name="xp", description="Entrega tu xp acumulada en este Bot")
+    async def give_xp(self, interaction: dc.Interaction):
+        user_id = interaction.user.id
+        xp = await obtain_user_xp(user_id)
+        await interaction.response.send_message(f"Tu cantidad de xp total es: {xp}")
+
     @tasks.loop(time=daily_time)
     async def run_daily_question(self):
         view = QuestionExample()
-        #desc = "Quién es el creador del famoso nivel **Nine Circles**?"
         desc = "Oficialmente, cuál de estos triggers **no existe** en el editor?"
         diff = "Fácil"
         question = QuestionGD(desc=desc, difficulty=diff, alternatives=["Spawn Trigger", "Touch Trigger", "On Restart Trigger", "Random Trigger"], correct=2, ext_alternatives=["On Death Trigger", "Advanced Follow Trigger"])

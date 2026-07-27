@@ -6,8 +6,9 @@ from dotenv import load_dotenv
 import os
 from discord import app_commands
 from gd_data import (QuestionGD, insert_question, obtain_questions, 
-                     modify_question, delete_question, obtain_single_question)
-from gd_ui import question_embed, QuestionButtonsView
+                     modify_question, delete_question, obtain_single_question, 
+                     modify_user_xp, remove_user)
+from gd_ui import question_embed, QuestionButtonsView, QuestionsPagination
 class DeveloperCog(commands.Cog):
     
     def __init__(self, bot: commands.Bot):
@@ -77,7 +78,10 @@ class DeveloperCog(commands.Cog):
     @app_commands.default_permissions(administrator=True)
     async def obtain_questions_command(self, interaction: dc.Interaction):
         questions = await obtain_questions(cg.OBTAIN_QUESTIONS_LIMIT)
-        await interaction.response.send_message(questions[:10])
+        pagination = QuestionsPagination()
+        embed, total_pages = await pagination.construir_embed()
+        await pagination.actualizar_botones(total_pages)
+        await interaction.response.send_message(embed=embed, view=pagination)
 
     @app_commands.command(name="modify_question", description="[🔧 DEV COMMAND]: Use it to modify one parameter of one question by id")
     @app_commands.check(dev_allowed_channel)
@@ -117,5 +121,24 @@ class DeveloperCog(commands.Cog):
         print(f"print_question: pregunta con id={id} mostrada")
         await interaction.response.send_message(f"Pregunta con id={id} printeada en el chat", ephemeral=True)
         await interaction.channel.send(embed=embed, view=view)
+
+    @app_commands.command(name="modify_xp", description="[🔧 DEV COMMAND]: Modifies the xp amount of selected user")
+    @app_commands.check(dev_allowed_channel)
+    @app_commands.describe(user="user to modify", xp="new xp for the user")
+    @app_commands.default_permissions(administrator=True)
+    async def modify_xp_command(self, interaction: dc.Interaction, user: dc.User, xp: int):
+        id = user.id
+        await modify_user_xp(id, xp)
+        await interaction.response.send_message(f"La xp del usuario={id} ha sido actualizada a xp={xp} con éxito.")
+
+    @app_commands.command(name="remove_user", description="[🔧 DEV COMMAND]: Removes user from the bot database")
+    @app_commands.check(dev_allowed_channel)
+    @app_commands.describe(user="user to remove")
+    @app_commands.default_permissions(administrator=True)
+    async def remove_user_command(self, interaction: dc.Interaction, user: dc.User):
+        id = user.id
+        await remove_user(id)
+        await interaction.response.send_message(f"Usuario de id={id} se eliminó de la base de datos.")
+
 async def setup(bot):
     await bot.add_cog(DeveloperCog(bot))

@@ -4,7 +4,8 @@ from discord.ext import commands
 from dotenv import load_dotenv
 import os
 import time
-from gd_data import configure_database
+from gd_data import configure_database, configure_users
+import sqlite3
 
 class GDQuiz(commands.Bot):
     load_dotenv("credentials.env")
@@ -60,10 +61,7 @@ class GDQuiz(commands.Bot):
     async def setup_hook(self):
         # sqlite database setup
         await configure_database()
-
-        #self.tree.clear_commands(guild=None)
-        # Sincronizamos esa "nada" con Discord para borrar su base de datos global
-        #await self.tree.sync()
+        await configure_users()
 
         # cog extensions for comands
         await self.load_extension("gd_cog")

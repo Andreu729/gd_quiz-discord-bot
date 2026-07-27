@@ -2,6 +2,7 @@
 import aiosqlite as sq
 import json
 import os
+import config as cg
 
 # defining the base class for manipulating data.
 class QuestionGD:
@@ -22,7 +23,7 @@ async def configure_database():
     path = os.path.join("database", "questions.db")
     async with sq.connect(path) as db:
         
-        # 1. CREAR LA TABLA (Defines las columnas y sus tipos)
+        # 1. QUESTIONS TABLE DEFINITION
         await db.execute("""
             CREATE TABLE IF NOT EXISTS questions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -31,6 +32,21 @@ async def configure_database():
                 alternatives TEXT,
                 correct INTEGER,
                 ext_alternatives TEXT
+            )
+        """)
+        await db.commit()
+
+async def configure_users():
+    path = os.path.join("database", "users.db")
+    async with sq.connect(path) as db:
+            
+        # 1. USERS TABLE DEFINITION
+        await db.execute("""
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY,
+                xp INTEGER DEFAULT 0,
+                level INTEGER DEFAULT 1,
+                score INTEGER DEFAULT 0
             )
         """)
         await db.commit()
@@ -52,13 +68,11 @@ async def delete_question(question_id: int):
     path = os.path.join("database", "questions.db")
     async with sq.connect(path) as db:
         
-        # Ejecutamos la sentencia de borrado
         await db.execute(
             "DELETE FROM questions WHERE id = ?", 
             (question_id,)
         )
         
-        # ¡Vital! Sin el commit, los cambios no se guardan en el archivo físico
         await db.commit()
         
         print(f"Pregunta con ID {question_id} ha sido borrada.")
@@ -130,3 +144,75 @@ async def obtain_single_question(id: int) -> QuestionGD:
             question = QuestionGD(description, difficulty, alternatives, correct, ext_alternatives)
             print(f"obtenida la pregunta con id {id}")
             return question
+
+# SCORE DATA MANAGEMENT
+def diff_to_xp(quesion: QuestionGD) -> int:
+    diff = quesion.difficulty
+    if diff == "Muy Fácil":
+        return cg.XP_DAILY_VERY_EASY
+    if diff == "Fácil":
+        return cg.XP_DAILY_EASY
+    if diff == "Intermedia":
+        return cg.XP_DAILY_MEDIUM
+    if diff == "Difícil":
+        return cg.XP_DAILY_HARD
+    if diff == "Imposible":
+        return cg.XP_DAILY_IMPOSSIBLE
+    else:
+         return 0
+
+async def obtain_user_xp(user_id: int) -> int:
+    path = os.path.join("database", "users.db")
+    async with sq.connect(path) as db:
+        db.row_factory = sq.Row
+
+        async with db.execute("SELECT xp FROM users WHERE id = ?",(user_id,)) as cursor:
+
+            row = await cursor.fetchone()
+            if row is None:
+                return 0
+            xp = int(row[0])
+            print(f"obtenida la xp {xp} del usuario: {user_id}")
+            return xp
+
+async def add_user_xp(user_id: int, xp: int):
+    path = os.path.join("database", "users.db")
+    async with sq.connect(path) as db:
+        db.row_factory = sq.Row
+
+        string_petition = """
+            INSERT INTO users (id, xp)
+            VALUES (?, ?)
+            ON CONFLICT(id) DO UPDATE SET xp = xp + excluded.xp
+        """
+        await db.execute(string_petition, (user_id, xp))
+        await db.commit()
+        print(f"Usuario con id: {user_id} obtuvo un total de {xp} xp")
+
+async def modify_user_xp(user_id: int, new_xp: int):
+    path = os.path.join("database", "users.db")
+    async with sq.connect(path) as db:
+        await db.execute(
+                f"""
+                UPDATE users 
+                SET xp = ?
+                WHERE id = ?
+                """,
+                (new_xp, user_id)
+            )
+        await db.commit()            
+        print(f"La xp del usuario={user_id} ha sido actualizada a xp={new_xp} con éxito.")
+
+
+async def remove_user(user_id: int):
+    path = os.path.join("database", "users.db")
+    async with sq.connect(path) as db:
+            
+        await db.execute(
+            "DELETE FROM users WHERE id = ?", 
+            (user_id,)
+        )
+            
+        await db.commit()
+            
+        print(f"Usuario de id={user_id} se eliminó de la base de datos")
