@@ -2,7 +2,11 @@ from zoneinfo import ZoneInfo
 # Format: [H, M, S]
 DAILY_QUESTION_TIME = [15, 0, 0]
 TIMEZONE = ZoneInfo("America/Santiago")
-
+# Time in days required between a question's appearance (can be float!)
+TIME_DAILY_COOLDOWN = 20.0
+# Weights of appearance of each difficulty in the order: very easy -> impossible
+DIFF_NAMES = ["Muy Fácil", "Fácil", "Intermedia", "Difícil", "Imposible"]
+DIFF_DAILY_WEIGHT = [5, 5, 4, 3, 1]
 '''
 Dev parameters (for avoid spamming in both consoles and chat)
 '''

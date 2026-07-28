@@ -3,6 +3,8 @@ import aiosqlite as sq
 import json
 import os
 import config as cg
+from datetime import datetime, timedelta
+import random as rn
 
 # defining the base class for manipulating data.
 class QuestionGD:
@@ -216,3 +218,43 @@ async def remove_user(user_id: int):
         await db.commit()
             
         print(f"Usuario de id={user_id} se eliminó de la base de datos")
+
+async def get_daily_question() -> QuestionGD:
+    diff_list = cg.DIFF_NAMES
+    weights = cg.DIFF_DAILY_WEIGHT
+    diff = rn.choices(diff_list, weights=weights, k=1)[0]
+    path = os.path.join("database", "questions.db")
+    date_now = datetime.now()
+    date_limit = datetime.now() - timedelta(days=cg.TIME_DAILY_COOLDOWN)
+    async with sq.connect(path) as db:
+        db.row_factory = sq.Row
+        string_petition = """
+            SELECT * FROM questions
+            WHERE difficulty = ?
+            AND (fecha_ultimo_uso IS NULL OR fecha_ultimo_uso < ?)
+            ORDER BY RANDOM()
+            LIMIT 1
+        """
+        cursor = await db.execute(string_petition, (diff, date_limit))
+        question = await cursor.fetchone()
+
+        if question is None:
+            print(f"No quedan más preguntas de dificultad {diff} lanzadas hace más de {cg.DAILY_QUESTION_TIME}, pregunta diaria saltada...")
+            return None
+        question = dict(question)
+        await db.execute(f"""
+            UPDATE questions
+            SET fecha_ultimo_uso = ?
+            WHERE id = {question["id"]}
+        """,(date_now,))
+        await db.commit()
+        await cursor.close()
+        difficulty = question["difficulty"]
+        description = question["description"]
+        correct = question["correct"]
+        alternatives = json.loads(question["alternatives"])
+        ext_alternatives = json.loads(question["ext_alternatives"])
+        question = QuestionGD(description, difficulty, alternatives, correct, ext_alternatives)
+        return question
+        
+    
