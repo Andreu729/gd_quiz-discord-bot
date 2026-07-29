@@ -3,8 +3,8 @@ import discord as dc
 from discord import app_commands
 import config as cg
 import datetime
-from gd_ui import QuestionExample, question_embed, QuestionButtonsView
-from gd_data import QuestionGD, obtain_user_xp, get_daily_question
+from gd_ui import QuestionExample, question_embed, QuestionButtonsView, user_embed
+from gd_data import QuestionGD, obtain_user_xp, get_daily_question, User
 class GDCog(commands.Cog):
     daily_time = datetime.time(hour=cg.DAILY_QUESTION_TIME[0], minute=cg.DAILY_QUESTION_TIME[1], 
                                second=cg.DAILY_QUESTION_TIME[2], tzinfo=cg.TIMEZONE)
@@ -27,6 +27,17 @@ class GDCog(commands.Cog):
         user_id = interaction.user.id
         xp = await obtain_user_xp(user_id)
         await interaction.response.send_message(f"Tu cantidad de xp total es: {xp}")
+
+    @app_commands.command(name="level", description="Entrega información de tu nivel y tu usuario")
+    async def show_user(self, interaction: dc.Interaction):
+        user = interaction.user
+        xp = await obtain_user_xp(user.id)
+        level = cg.LEVEL_FUNCTION(xp)
+        xp_level = cg.LEVEL_FUNCTION_INV(level)
+        xp_level = xp - xp_level
+        user_class = User(user, level, xp, xp_level)
+        embed = user_embed(user_class)
+        await interaction.response.send_message(embed=embed)
 
     @tasks.loop(time=daily_time)
     async def run_daily_question(self):

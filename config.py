@@ -1,4 +1,5 @@
 from zoneinfo import ZoneInfo
+import math
 # Format: [H, M, S]
 DAILY_QUESTION_TIME = [15, 0, 0]
 TIMEZONE = ZoneInfo("America/Santiago")
@@ -41,3 +42,9 @@ XP_DAILY_EASY = 12
 XP_DAILY_MEDIUM = 15
 XP_DAILY_HARD = 18
 XP_DAILY_IMPOSSIBLE = 25
+
+# Lambda function to calculate levels in the system (must be invertible)
+LEVEL_FUNCTION = lambda xp: int((xp / 20)**(0.7) + 1)
+# Inverse or the previous function
+LEVEL_FUNCTION_INV = lambda lvl: math.ceil(((lvl - 1)**(1/0.7)) * 20)
+XP_BAR_LENGTH = 10

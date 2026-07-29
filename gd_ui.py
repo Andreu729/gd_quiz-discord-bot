@@ -2,7 +2,7 @@
 from discord import ui
 import discord as dc
 import config as cg
-from gd_data import QuestionGD, diff_to_xp, add_user_xp
+from gd_data import QuestionGD, User, diff_to_xp, add_user_xp
 from random import shuffle
 import aiosqlite as sq
 import os
@@ -98,6 +98,25 @@ def question_embed(question: QuestionGD, daily: bool=True, number: int=0) -> dc.
     if daily:
         embed_question.add_field(name="Límite de tiempo", value="14:59 hrs (Chile)", inline=True)
     return embed_question
+
+def user_embed(user: User) -> dc.Embed:
+    title = user.user.display_name
+    desc = f"Nivel: {user.level}\n"
+    desc += f"XP actual: {user.lvl_xp}\n"
+    xp_new = cg.LEVEL_FUNCTION_INV(user.level + 1)
+    xp_need =  xp_new - (user.total_xp - user.lvl_xp)
+    desc += f"XP siguiente nivel: {xp_need}\n"
+    desc += f"XP acumulada: {user.total_xp}"
+    color = dc.Color.gold()
+    embed_user = dc.Embed(title=title, description=desc, color=color)
+    embed_user.set_thumbnail(url=user.user.display_avatar.url)
+    progress = min(user.lvl_xp / xp_need, 1.0)
+    filled_blocks = int(cg.XP_BAR_LENGTH * progress)
+    empty_blocks = cg.XP_BAR_LENGTH - filled_blocks
+
+    exp_bar = ("🟦" * filled_blocks) + ("⬛" * empty_blocks)
+    embed_user.add_field(name="Progreso", value=exp_bar, inline=False)
+    return embed_user
 
 # Clase hecha con IA
 class QuestionsPagination(dc.ui.View):

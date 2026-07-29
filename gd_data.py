@@ -5,6 +5,7 @@ import os
 import config as cg
 from datetime import datetime, timedelta
 import random as rn
+import discord as dc
 
 # defining the base class for manipulating data.
 class QuestionGD:
@@ -19,6 +20,14 @@ class QuestionGD:
         self.ext_alternatives = ext_alternatives
         self.is_extra = False
         self.shuffled_alternatives = []
+
+class User:
+    def __init__(self, user: dc.User, level: int, total_xp: int, lvl_xp: int):
+        self.user = user
+        self.level = level
+        self.total_xp = total_xp
+        self.lvl_xp = lvl_xp
+
 # runs every time you start the bot.
 async def configure_database():
     # Se conecta al archivo (si no existe, lo crea al instante)
@@ -256,5 +265,3 @@ async def get_daily_question() -> QuestionGD:
         ext_alternatives = json.loads(question["ext_alternatives"])
         question = QuestionGD(description, difficulty, alternatives, correct, ext_alternatives)
         return question
-        
-    
