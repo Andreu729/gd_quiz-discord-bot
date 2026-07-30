@@ -2,7 +2,7 @@
 from discord import ui
 import discord as dc
 import config as cg
-from gd_data import QuestionGD, User, diff_to_xp, add_user_xp
+from gd_data import QuestionGD, User, diff_to_xp, update_player
 from random import shuffle
 import aiosqlite as sq
 import os
@@ -20,19 +20,9 @@ class QuestionButton(ui.Button):
             user_id = interaction.user.id
             xp = diff_to_xp(self.question)
             await response.send_message(f"Respuesta Correcta :D | xp Añadida: {xp}", ephemeral=True)
-            await add_user_xp(user_id, xp)
+            await update_player(interaction, xp)
         else:
             await response.send_message("Respuesta incorrecta :(", ephemeral=True)
-
-class QuestionExample(ui.View):
-
-    def __init__(self):
-        super().__init__(timeout=None)
-
-        self.add_item(QuestionButton(label="Spawn Trigger", correct=False))
-        self.add_item(QuestionButton(label="Touch Trigger", correct=False))
-        self.add_item(QuestionButton(label="On Restart Trigger", correct=True))
-        self.add_item(QuestionButton(label="Random Trigger", correct=False))
 
 class QuestionButtonsView(ui.View):
 
@@ -103,11 +93,11 @@ def user_embed(user: User) -> dc.Embed:
     title = user.user.display_name
     desc = f"Nivel: {user.level}\n"
     desc += f"XP actual: {user.lvl_xp}\n"
-    xp_new = cg.LEVEL_FUNCTION_INV(user.level + 1)
+    xp_new = cg.XP_FUNCTION(user.level + 1)
     xp_need =  xp_new - (user.total_xp - user.lvl_xp)
     desc += f"XP siguiente nivel: {xp_need}\n"
     desc += f"XP acumulada: {user.total_xp}"
-    color = dc.Color.gold()
+    color = user.color
     embed_user = dc.Embed(title=title, description=desc, color=color)
     embed_user.set_thumbnail(url=user.user.display_avatar.url)
     progress = min(user.lvl_xp / xp_need, 1.0)

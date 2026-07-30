@@ -3,8 +3,8 @@ import discord as dc
 from discord import app_commands
 import config as cg
 import datetime
-from gd_ui import QuestionExample, question_embed, QuestionButtonsView, user_embed
-from gd_data import QuestionGD, obtain_user_xp, get_daily_question, User
+from gd_ui import question_embed, QuestionButtonsView, user_embed
+from gd_data import QuestionGD, obtain_user, get_daily_question, User, obtain_user_xp, color_id_to_color
 class GDCog(commands.Cog):
     daily_time = datetime.time(hour=cg.DAILY_QUESTION_TIME[0], minute=cg.DAILY_QUESTION_TIME[1], 
                                second=cg.DAILY_QUESTION_TIME[2], tzinfo=cg.TIMEZONE)
@@ -31,20 +31,18 @@ class GDCog(commands.Cog):
     @app_commands.command(name="level", description="Entrega información de tu nivel y tu usuario")
     async def show_user(self, interaction: dc.Interaction):
         user = interaction.user
-        xp = await obtain_user_xp(user.id)
-        level = cg.LEVEL_FUNCTION(xp)
-        xp_level = cg.LEVEL_FUNCTION_INV(level)
-        xp_level = xp - xp_level
-        user_class = User(user, level, xp, xp_level)
+        user_db = await obtain_user(user.id)
+        xp = user_db["xp"]
+        level = user_db["level"]
+        xp_level = xp - cg.XP_FUNCTION(level)
+        color_id = user_db["color"]
+        color = color_id_to_color(color_id)
+        user_class = User(user, level, total_xp=xp, lvl_xp=xp_level, color=color)
         embed = user_embed(user_class)
         await interaction.response.send_message(embed=embed)
 
     @tasks.loop(time=daily_time)
     async def run_daily_question(self):
-        #view = QuestionExample()
-        #desc = "Oficialmente, cuál de estos triggers **no existe** en el editor?"
-        #diff = "Fácil"
-        #question = QuestionGD(desc=desc, difficulty=diff, alternatives=["Spawn Trigger", "Touch Trigger", "On Restart Trigger", "Random Trigger"], correct=2, ext_alternatives=["On Death Trigger", "Advanced Follow Trigger"])
         question = await get_daily_question()
         embed = question_embed(question)
         view = QuestionButtonsView(question=question)
