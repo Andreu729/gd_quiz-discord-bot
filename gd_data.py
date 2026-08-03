@@ -12,7 +12,6 @@ class QuestionGD:
     def __init__(self, desc: str, 
                  difficulty: str, alternatives: list[str], 
                  correct: int, ext_alternatives: list[str]):
-        self.id = -1 # this is modified just after creating a new question
         self.desc = desc
         self.difficulty = difficulty
         self.alternatives = alternatives
@@ -219,14 +218,13 @@ async def modify_user_xp(user_id: int, new_xp: int):
     color_id = lvl_to_color_id(new_lvl)
     async with sq.connect(path) as db:
         await db.execute(
-                f"""
-                UPDATE users 
-                SET xp = ?,
-                level = ?,
-                color = ?
-                WHERE id = ?
+                """
+                INSERT INTO users (id, xp, level, color)
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT(id) DO UPDATE SET xp = excluded.xp, 
+                level = excluded.level, color = excluded.color
                 """,
-                (new_xp, new_lvl, color_id, user_id)
+                (user_id, new_xp, new_lvl, color_id)
             )
         await db.commit()            
         print(f"La xp del usuario={user_id} ha sido actualizada a xp={new_xp} y lvl={new_lvl} con éxito.")

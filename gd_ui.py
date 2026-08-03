@@ -17,7 +17,6 @@ class QuestionButton(ui.Button):
     async def callback(self, interaction: dc.Interaction):
         response = interaction.response
         if self.correct:
-            user_id = interaction.user.id
             xp = diff_to_xp(self.question)
             await response.send_message(f"Respuesta Correcta :D | xp Añadida: {xp}", ephemeral=True)
             await update_player(interaction, xp)
@@ -34,6 +33,7 @@ class QuestionButtonsView(ui.View):
         correct = question.alternatives[correct_id]
         button_list = [QuestionButton(label=chr(65 + i), correct=shuffled[i]==correct, question=question) for i in range(len_shuffled)]
         self.answered_users = set()
+        self.button_list = button_list
 
         for button in button_list:
             self.add_item(button)
@@ -46,6 +46,12 @@ class QuestionButtonsView(ui.View):
         else:
             self.answered_users.add(user_id)
             return True
+
+async def disable_question(message: dc.Message, view: QuestionButtonsView):
+    buttons = view.button_list
+    for button in buttons:
+        button.disabled = True
+    await message.edit(view=view)
 
 def question_embed(question: QuestionGD, daily: bool=True, number: int=0) -> dc.Embed:
     desc = question.desc + ".\n\n"

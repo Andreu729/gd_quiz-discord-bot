@@ -3,9 +3,10 @@ import discord as dc
 from discord import app_commands
 import config as cg
 import datetime
-from gd_ui import question_embed, QuestionButtonsView, user_embed
-from gd_data import QuestionGD, obtain_user, get_daily_question, User, obtain_user_xp, color_id_to_color
+from gd_ui import question_embed, QuestionButtonsView, user_embed, disable_question
+from gd_data import QuestionGD, obtain_user, get_daily_question, User, obtain_user_xp, color_id_to_color, add_user_xp
 class GDCog(commands.Cog):
+    view_list = []
     daily_time = datetime.time(hour=cg.DAILY_QUESTION_TIME[0], minute=cg.DAILY_QUESTION_TIME[1], 
                                second=cg.DAILY_QUESTION_TIME[2], tzinfo=cg.TIMEZONE)
     def __init__(self, bot: commands.Bot):
@@ -31,6 +32,7 @@ class GDCog(commands.Cog):
     @app_commands.command(name="level", description="Entrega información de tu nivel y tu usuario")
     async def show_user(self, interaction: dc.Interaction):
         user = interaction.user
+        await add_user_xp(user.id, 0)
         user_db = await obtain_user(user.id)
         xp = user_db["xp"]
         level = user_db["level"]
@@ -43,10 +45,14 @@ class GDCog(commands.Cog):
 
     @tasks.loop(time=daily_time)
     async def run_daily_question(self):
+        for quest in self.view_list:
+            old_message, old_view = quest
+            await disable_question(old_message, old_view)
         question = await get_daily_question()
         embed = question_embed(question)
         view = QuestionButtonsView(question=question)
-        await self.bot.get_channel(self.bot.DAILY_CHANNEL_ID).send(embed=embed, view=view)
+        message = await self.bot.get_channel(self.bot.DAILY_CHANNEL_ID).send(embed=embed, view=view)
+        self.view_list.append((message, view))
     
     @run_daily_question.before_loop
     async def before_question(self):
